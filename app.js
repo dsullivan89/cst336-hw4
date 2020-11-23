@@ -3,13 +3,17 @@ const path = require('path');
 const app = express();
 app.engine('html', require('ejs').renderFile);
 
+var faker = require('faker');
+
 port = process.env.PORT || 3000;
 
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get("/", function(req, res) {
-	//res.send("Hello");
-	res.render("index.html");
+	var randomName = faker.name.findName(); // Rowan Nikolaus
+    var randomEmail = faker.internet.email(); // Kassandra.Haley@erich.biz
+    // var randomCard = faker.helpers.createCard(); // random contact card containing many properties
+	res.render("index.html", { name: randomName });
 });
 
 app.get('/lesson1', function(req, res) {
