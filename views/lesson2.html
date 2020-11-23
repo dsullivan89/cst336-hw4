@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+	<%- include("partials/head.ejs") %>
+	<body>
+		<%- include("partials/header.ejs") %>
+		 <div class="content">
+			<h1>Lesson 2: Initializing DirectX 11</h1>
+			<br />
+			<h2>Introduction</h2>
+			<p>DirectX 11 has a device and device context. A device creates the resources whereas the context uses them.
+				We will need to create a device, context, swapchain, vertex and pixel shaders, as well as a constant buffer,
+				vertex buffer, and index buffer.
+			</p>
+			<p>
+				For my apps I usually do a constant buffer per object, per frame, per scene and it allows me some degree of efficiency
+				when doing lots of matrix math. (I dont need to update everything indiscriminantly all the time)
+			</p>
+			<p>
+				We will see functions like these in every directx app. Something called once at the start, something called per frame, 
+				something else called on shutdown.
+			</p>
+			<ul>
+				<li>bool InitializeDirect3d11App();</li>
+				<li>void ReleaseObjects();</li>	
+				<li>bool InitScene();</li>	
+				<li>void UpdateScene();</li>	
+				<li>void DrawScene();</li>
+			</ul>
+			<h3>Creating our COM objects</h3>
+			<pre class="prettyprint">
+				<code class="language-cpp">
+IDXGISwapChain* SwapChain;
+ID3D11Device* d3d11Device;
+ID3D11DeviceContext* d3d11DevCon;
+ID3D11RenderTargetView* renderTargetView;
+				</code>
+			</pre>
+			<h2>Our init() function</h2>
+			<p>This function minimally initializes DirectX 11.</p>
+			<p>We need a device, context, and swap chain as a bare minimum. At this point
+				we would at least be able to draw the entire screen as a solid color.
+			</p>
+			<pre class="prettyprint">
+				<code class="language-cpp">
+bool InitializeDirect3dApp(HINSTANCE hInstance)
+{
+HRESULT hr;
+
+//Describe our Buffer
+DXGI_MODE_DESC bufferDesc;
+
+ZeroMemory(&bufferDesc, sizeof(DXGI_MODE_DESC));
+
+bufferDesc.Width = Width;
+bufferDesc.Height = Height;
+bufferDesc.RefreshRate.Numerator = 60;
+bufferDesc.RefreshRate.Denominator = 1;
+bufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+bufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+bufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+
+//Describe our SwapChain
+DXGI_SWAP_CHAIN_DESC swapChainDesc; 
+    
+ZeroMemory(&swapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC));
+
+swapChainDesc.BufferDesc = bufferDesc;
+swapChainDesc.SampleDesc.Count = 1;
+swapChainDesc.SampleDesc.Quality = 0;
+swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+swapChainDesc.BufferCount = 1;
+swapChainDesc.OutputWindow = hwnd; 
+swapChainDesc.Windowed = TRUE; 
+swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+
+
+//Create our SwapChain
+hr = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, NULL, NULL, NULL,
+    D3D11_SDK_VERSION, &swapChainDesc, &SwapChain, &d3d11Device, NULL, &d3d11DevCon);
+
+//Create our BackBuffer
+ID3D11Texture2D* BackBuffer;
+hr = SwapChain->GetBuffer( 0, __uuidof( ID3D11Texture2D ), (void**)&BackBuffer );
+
+//Create our Render Target
+hr = d3d11Device->CreateRenderTargetView( BackBuffer, NULL, &renderTargetView );
+BackBuffer->Release();
+
+//Set our Render Target
+d3d11DevCon->OMSetRenderTargets( 1, &renderTargetView, NULL );
+
+return true;
+}
+				</code>
+			</pre>
+			<h3>Our render function</h3>
+			<p>The message pump will call our update and render methods in that order. We don't
+				have anything updateable so I will skip it for now but usually you pass the elapsed
+				time to it so you can calculate deltas.
+			</p>
+			<pre class="prettyprint">
+				<code class="language-cpp">
+void DrawScene()
+{
+    //Clear our backbuffer to the updated color
+    D3DXCOLOR bgColor( red, green, blue, 1.0f );
+
+    d3d11DevCon->ClearRenderTargetView(renderTargetView, bgColor);
+
+    //Present the backbuffer to the screen
+    SwapChain->Present(0, 0);
+}
+				</code>
+			</pre>
+			<h3>One more thing: The Window's Message Pump</h3>
+			<p>This is where the application's heart beats. It is a function that
+				processes all windows messages and then calls a frame of our game to be rendered
+				and / or network data to be sent / received. You'll see we use PeekMessage() instead
+				of the more commonly used function. This function gives better performance for our purposes.
+			</p>
+			<pre class="prettyprint">
+				<code class="language-cpp">
+int messageloop(){    //The message loop
+
+    MSG msg;    //Create a new message structure
+    ZeroMemory(&msg, sizeof(MSG));    //clear message structure to NULL
+
+    while(true)    //while there is a message
+    {
+          //if there was a windows message
+        if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+        {
+            if (msg.message == WM_QUIT)    //if the message was WM_QUIT
+                break;    //Exit the message loop
+
+            TranslateMessage(&msg);    //Translate the message
+            
+            //Send the message to default windows procedure
+            DispatchMessage(&msg);
+        }
+
+        else{    //Otherewise, keep the flow going
+
+        }
+        
+
+    }
+
+    return (int)msg.wParam;        //return the message
+
+}
+				</code>
+			</pre>
+			<h3>Cleaning up</h3>
+			<p>With the newer standard of C++ you just use smart pointers and this is handled for you.
+				I'm just old enough that I don't really care because I'm responsible.
+			</p>
+			<pre class="prettyprint">
+				<code class="language-cpp">
+void ReleaseObjects()
+{
+    //Release the COM Objects we created
+    SwapChain->Release();
+    d3d11Device->Release();
+    d3dDevCon->Release();
+}
+				</code>
+			</pre>
+			<h3>Example Output</h3>
+			<img class="center" src="img/d3d_initialized.png" alt="d3d example"/>
+		 </div>
+	</body>
+	<%- include("partials/footer.ejs") %>
+</html>

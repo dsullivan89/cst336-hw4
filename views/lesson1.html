@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+	<%- include("partials/head.ejs") %>
+	<body>
+		<%- include("partials/header.ejs") %>
+		<div class="content">
+			<h1>Lesson 1: Creating a Window</h1>
+			<br />
+			<h2>Introduction</h2>
+			<p>Windows apps for games use a slightly different message pump and perhaps handle more
+				windows messages as resizing or moving a window affects the graphics and timing systems.
+			</p>
+			<p>
+				We will step through some code one chunk at a time and explain briefly as we go. First up 
+				is our winmain function. This is the entry point for win32 applications.
+			</p>
+			<h3>Our Entrypoint: The Winmain Function</h3>
+			<pre class="prettyprint">
+				<code class="language-cpp">
+#include &lt;windows.h&gt;
+
+int WINAPI WinMain(HINSTANCE hInstance,    //Main windows function
+HINSTANCE hPrevInstance, 
+LPSTR lpCmdLine,
+int nShowCmd)
+{
+	return 0; // this can be an error code returned from our app.
+}
+				</code>
+			</pre>
+			<h2>Next steps</h2>
+			<p>We will create a function to initialize the window followed by the message pump.</p>
+			<p>Normally I would encourage us to put this code in a class. It isn't too hard though
+				and it strays from our topic. This is about learning how to make a directx app, not studying
+				how I would implement it.
+			</p>
+			<h3>Initializing a window</h3>
+			<p>We use a struct called WNDCLASSEX that defines a few parameters for our window.
+				After we fill it in we call RegisterClassEx() and finally CreateWindowEx(). finally
+				we call ShowWindow() and we are done. A window has been created.
+			</p>
+			<p>
+				Below we can see a function to initialize a window:
+			</p>
+			<pre class="prettyprint">
+				<code class="language-cpp">
+bool InitializeWindow(HINSTANCE hInstance,    //Initialize our window
+                         int ShowWnd,
+                         int width, int height,
+                         bool windowed)
+{
+    //Start creating the window//
+
+    WNDCLASSEX wc;    //Create a new extended windows class
+
+    wc.cbSize = sizeof(WNDCLASSEX);    //Size of our windows class
+    wc.style = CS_HREDRAW | CS_VREDRAW;    //class styles
+    wc.lpfnWndProc = WndProc;    //Default windows procedure function
+    wc.cbClsExtra = NULL;    //Extra bytes after our wc structure
+    wc.cbWndExtra = NULL;    //Extra bytes after our windows instance
+    wc.hInstance = hInstance;    //Instance to current application
+    wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);    //Title bar Icon
+    wc.hCursor = LoadCursor(NULL, IDC_ARROW);    //Default mouse Icon
+    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 2);    //Window bg color
+    wc.lpszMenuName = NULL;    //Name of the menu attached to our window
+    wc.lpszClassName = WndClassName;    //Name of our windows class
+    wc.hIconSm = LoadIcon(NULL, IDI_WINLOGO); //Icon in your taskbar
+
+    if (!RegisterClassEx(&wc))    //Register our windows class
+    {
+            //if registration failed, display error
+        MessageBox(NULL, "Error registering class",    
+            "Error", MB_OK | MB_ICONERROR);
+        return false;
+    }
+
+    hwnd = CreateWindowEx(    //Create our Extended Window
+        NULL,    //Extended style
+        WndClassName,    //Name of our windows class
+        "Window Title",    //Name in the title bar of our window
+        WS_OVERLAPPEDWINDOW,    //style of our window
+        CW_USEDEFAULT, CW_USEDEFAULT,    //Top left corner of window
+        width,    //Width of our window
+        height,    //Height of our window
+        NULL,    //Handle to parent window
+        NULL,    //Handle to a Menu
+        hInstance,    //Specifies instance of current program
+        NULL    //used for an MDI client window
+        );
+
+    if (!hwnd)    //Make sure our window has been created
+    {
+        //If not, display error
+        MessageBox(NULL, "Error creating window",
+            "Error", MB_OK | MB_ICONERROR);
+        return false;
+    }
+
+    ShowWindow(hwnd, ShowWnd);    //Shows our window
+    UpdateWindow(hwnd);    //Its good to update our window
+
+    return true;    //if there were no errors, return true
+}
+				</code>
+			</pre>
+			<h3>One more thing: The Window's Message Pump</h3>
+			<p>This is where the application's heart beats. It is a function that
+				processes all windows messages and then calls a frame of our game to be rendered
+				and / or network data to be sent / received. You'll see we use PeekMessage() instead
+				of the more commonly used function. This function gives better performance for our purposes.
+			</p>
+			<pre class="prettyprint">
+				<code class="language-cpp">
+int messageloop(){    //The message loop
+
+    MSG msg;    //Create a new message structure
+    ZeroMemory(&msg, sizeof(MSG));    //clear message structure to NULL
+
+    while(true)    //while there is a message
+    {
+          //if there was a windows message
+        if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+        {
+            if (msg.message == WM_QUIT)    //if the message was WM_QUIT
+                break;    //Exit the message loop
+
+            TranslateMessage(&msg);    //Translate the message
+            
+            //Send the message to default windows procedure
+            DispatchMessage(&msg);
+        }
+
+        else{    //Otherewise, keep the flow going
+
+        }
+        
+
+    }
+
+    return (int)msg.wParam;        //return the message
+
+}
+				</code>
+			</pre>
+			<h3>Our final result!</h3>
+			<img src="img/window.png" class="center" alt="example window"/>
+		 </div>
+	</body>
+	<%- include("partials/footer.ejs") %>
+</html>

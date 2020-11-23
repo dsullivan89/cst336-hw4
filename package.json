@@ -1,0 +1,25 @@
+{
+  "name": "cst336-hw4",
+  "version": "1.0.0",
+  "description": "cst 336 - lab4 11-23-2020",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dsullivan89/cst336-hw4.git"
+  },
+  "author": "David Sullivan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dsullivan89/cst336-hw4/issues"
+  },
+  "homepage": "https://github.com/dsullivan89/cst336-hw4#readme",
+  "dependencies": {
+    "ejs": "^3.1.5",
+    "express": "^4.17.1",
+    "nodemon": "^2.0.6"
+  }
+}

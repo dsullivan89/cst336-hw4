@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+	<%- include("partials/head.ejs") %>
+	<body>
+		<%- include("partials/header.ejs") %>
+		<div class="content">
+			<h1>Lesson 4: Drawing a triangle</h1>
+			<br />
+			<h2>Introduction</h2>
+			<p>We are almost there. A few more buffers and a draw call then we have our triangle.
+			</p>
+			<p>
+				We need a struct in our app that defines our vertices. They will contain a lot of floats.
+				Ours will represent position and color. It will also have an input layout which gives semantics
+				and byte offsets for the GPU.
+			</p>
+			<h3>The vertex format</h3>
+			<pre class="prettyprint">
+				<code class="language-cpp">
+//The vertex Structure
+struct Vertex
+{
+    D3DXVECTOR3 pos;
+    D3DXCOLOR   color;
+};
+
+//The input-layout description
+D3D11_INPUT_ELEMENT_DESC layout[] =
+{
+    {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    {"COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
+};
+				</code>
+			</pre>
+			<h3>Creating a vertex buffer</h3>
+			<p>This is not the same thing. Now we use an array of the struct we just made. 
+				Since we want to draw a triangle we just need 3 vertices. The buffer is actually
+				a directx object.
+			</p>
+			<pre class="prettyprint">
+				<code class="language-cpp">
+Vertex v[] =
+{
+    Vertex( 0.0f, 0.5f, 0.5f ),
+    Vertex( 0.5f, -0.5f, 0.5f ),
+    Vertex( -0.5f, -0.5f, 0.5f ),
+};
+
+D3D11_BUFFER_DESC vertexBufferDesc;
+ZeroMemory( &vertexBufferDesc, sizeof(vertexBufferDesc) );
+
+vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+vertexBufferDesc.ByteWidth = sizeof( Vertex ) * 3;
+vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+vertexBufferDesc.CPUAccessFlags = 0;
+vertexBufferDesc.MiscFlags = 0;
+
+D3D11_SUBRESOURCE_DATA vertexBufferData; 
+
+ZeroMemory( &vertexBufferData, sizeof(vertexBufferData) );
+vertexBufferData.pSysMem = v;
+hr = d3d11Device->CreateBuffer( &vertexBufferDesc, &vertexBufferData, &triangleVertBuffer);
+				</code>
+			</pre>
+			<h3>A few more bits</h3>
+			<p>We need to put this in our init() method. These are the vertex structure and input layout.
+				This has to be just right or it won't work at all. It holds byte offsets and semantics that
+				the shaders will need to do their jobs.
+			</p>
+			<pre class="prettyprint">
+				<code class="language-cpp">
+//The vertex Structure
+struct Vertex
+{
+    D3DXVECTOR3 pos;
+    D3DXCOLOR   color;
+};
+
+//The input-layout description
+D3D11_INPUT_ELEMENT_DESC layout[] =
+{
+    {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    {"COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
+};
+				</code>
+			</pre>
+			<h3>A few more COM objects</h3>
+			<p>These add up quickly. Your scene's static geometry can all fit in one buffer that is
+				marked as immutable (for efficiency) whereas modifiable geometry can be placed in another
+				buffer.
+			</p>
+			<p>These really should have gone up at the top but because I forgot to mention them. They are here.
+			</p>
+			<pre class="prettyprint">
+				<code class="language-cpp">
+ID3D11Buffer* triangleVertBuffer;
+ID3D11VertexShader* VS;
+ID3D11PixelShader* PS;
+ID3D10Blob* VS_Buffer;
+ID3D10Blob* PS_Buffer;
+ID3D11InputLayout* vertLayout;
+				</code>
+			</pre>
+			<h3>Cleaning up</h3>
+			<p>Don't forget to add the proper entries into the cleanup() function.
+			</p>
+			<pre class="prettyprint">
+				<code class="language-cpp">
+triangleVertBuffer->Release();
+VS->Release();
+PS->Release();
+VS_Buffer->Release();
+PS_Buffer->Release();
+vertLayout->Release();
+				</code>
+			</pre>
+			<h3>Drawing</h3>
+			<p>After all that hard work, drawing becomes easy.</p>
+			<pre class="prettyprint">
+				<code class="language-cpp">
+void DrawScene()
+{
+    float bgColor[4] = {(0.0f, 0.0f, 0.0f, 0.0f)};
+    d3d11DevCon->ClearRenderTargetView(renderTargetView, bgColor);
+
+    d3d11DevCon->Draw( 3, 0 );
+
+    SwapChain->Present(0, 0);
+}
+				</code>
+			</pre>
+			<p></p>
+			<h3>Ending Notes</h3>
+			<p>I showed you more or less everything. All that would be left is using the context
+				to set the buffers and shaders as well as the input layout and topology.
+			</p>
+			<img class="center" src="img/triangle.png" alt="triangle"/>
+		 </div>
+	</body>
+	<%- include("partials/footer.ejs") %>
+</html>

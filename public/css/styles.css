@@ -1,0 +1,87 @@
+body {
+	background-color: black;
+}
+
+header {
+	font-family: 'Bree Serif', serif;
+	color: white;
+}
+
+header, main {
+	text-align: center;
+}
+
+/* Footer css */
+.footer-center {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.d-block {
+	display: block;
+}
+
+.text-c {
+	text-align: center;
+}
+
+.small {
+	font-size: 0.5em;
+}
+
+.center {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	width: 50%;
+ }
+
+.content {
+	color: white;
+	border-style: solid; border-width:thin; border-color: #FFFFFF;
+	margin: 15px;
+	position: absolute;
+	left: 130px;
+}
+
+h1, h2, p {
+	margin: 15px;
+}
+
+h3, ul {
+	margin: 15px;
+	text-align: left;
+}
+
+pre {
+	text-align: left;
+	background-color: white;
+	width: auto;
+	margin: 15px;
+}
+
+
+.vertical-menu {
+	width: 100px; /* Set a width if you like */
+	border-style: solid; border-width:thin; border-color: #4CAF50;
+	margin: 15px;
+	position: absolute;
+	left: 15px;
+ }
+ 
+ .vertical-menu a {
+	background-color: black; /* Grey background color */
+	color: white; /* Black text color */
+	display: block; /* Make the links appear below each other */
+	padding: 12px; /* Add some padding */
+	text-decoration: none; /* Remove underline from links */
+ }
+ 
+ .vertical-menu a:hover {
+	background-color: #ccc; /* Dark grey background on mouse-over */
+ }
+ 
+ .vertical-menu a.active {
+	background-color: #4CAF50; /* Add a green color to the "active/current" link */
+	color: white;
+ }
